@@ -1,0 +1,21 @@
+.gradient-waves-container {
+  position: fixed;
+
+  inset: 0;
+
+  width: 100vw;
+  height: 100vh;
+
+  overflow: hidden;
+
+  z-index: 0;
+
+  pointer-events: auto;
+}
+
+.gradient-waves-container canvas {
+  display: block;
+
+  width: 100% !important;
+  height: 100% !important;
+}

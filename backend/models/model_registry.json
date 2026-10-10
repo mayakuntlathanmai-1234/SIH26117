@@ -1,0 +1,26 @@
+{
+  "General": {
+    "name": "General",
+    "runtime": "ollama",
+    "model_name": "qwen2:0.5b",
+    "capabilities": ["reasoning", "document", "RAG", "summarization"],
+    "task_types": ["document_analysis", "general_query", "planning"],
+    "enabled": true
+  },
+  "Coding": {
+    "name": "Coding",
+    "runtime": "ollama",
+    "model_name": "qwen2:0.5b", 
+    "capabilities": ["coding", "debugging", "code_generation"],
+    "task_types": ["code_generation", "code_analysis"],
+    "enabled": true
+  },
+  "Vision": {
+    "name": "Vision",
+    "runtime": "ollama",
+    "model_name": "moondream:latest",
+    "capabilities": ["vision", "image", "scanned_document"],
+    "task_types": ["image_analysis", "visual_inspection"],
+    "enabled": true
+  }
+}

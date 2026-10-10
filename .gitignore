@@ -1,0 +1,45 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+backend/venv/
+*/venv/
+
+# Node dependencies & builds
+node_modules/
+Kaizen_AI/node_modules/
+frontend/node_modules/
+dist/
+Kaizen_AI/dist/
+frontend/dist/
+.vite/
+
+# Python Cache
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local Vector Store & Temp Documents
+backend/data/vector_store/
+backend/data/documents/*
+!backend/data/documents/.gitkeep
+
+# Logs & System artifacts
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Nested duplicate backup
+SIH26117/
+DNA_Labs_01-10_Colab_Notebooks.zip
+workbook.txt
+check_notebook.py
+create_notebook.py
+split_notebooks.py
+validate_split.py
