@@ -230,14 +230,22 @@ def run_agent(request: ChatRequest):
 # ─────────────────────────────────────────────────────────────────────────────
 @app.post("/analyze-image")
 def analyze_image(request: ImageAnalysisRequest):
-    img_path = os.path.join(IMAGES_DIR, request.image_name)
+    img_filename = request.image_name or (os.path.basename(request.image_path) if request.image_path else "")
+    if not img_filename:
+        raise HTTPException(status_code=400, detail="Missing image_name or image_path.")
+    
+    img_path = os.path.join(IMAGES_DIR, img_filename) if not os.path.isabs(img_filename) else img_filename
     if not os.path.exists(img_path):
-        raise HTTPException(status_code=404, detail="Image not found")
-    analysis = analyze_image_with_ollama(
-        img_path,
-        "Describe the visible condition of this equipment in detail."
-    )
-    return {"analysis": analysis}
+        doc_img = os.path.join(DOCS_DIR, img_filename)
+        if os.path.exists(doc_img):
+            img_path = doc_img
+        else:
+            raise HTTPException(status_code=404, detail="Image not found in workspace.")
+            
+    vision_model = settings.model_registry.get("Vision", {}).get("model_name", "moondream:latest")
+    prompt = request.prompt or "Describe the visible condition of this equipment in detail."
+    analysis = analyze_image_with_ollama(img_path, prompt, model=vision_model)
+    return {"analysis": analysis, "image": img_filename, "model": vision_model}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

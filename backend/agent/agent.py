@@ -9,6 +9,7 @@ import sys
 from config import settings
 from agent.router import route_task
 from agent.planner import generate_plan
+from agent.sandbox import execute_code_sandboxed
 from reports.word_report import create_word_report
 from reports.excel_report import create_excel_report
 from reports.ppt_report import create_ppt_report
@@ -86,7 +87,9 @@ def call_ollama(prompt: str,
 # ─────────────────────────────────────────────
 # 2.  Vision model call
 # ─────────────────────────────────────────────
-def analyze_image_with_ollama(image_path: str, prompt: str, model: str = "llava:latest") -> str:
+def analyze_image_with_ollama(image_path: str, prompt: str, model: str = None) -> str:
+    if not model:
+        model = settings.model_registry.get("Vision", {}).get("model_name", "moondream:latest")
     try:
         with open(image_path, "rb") as f:
             encoded = base64.b64encode(f.read()).decode("utf-8")
@@ -129,20 +132,10 @@ def extract_code_block(text: str) -> str:
     return match.group(1).strip() if match else ""
 
 def execute_local_code(code: str) -> str:
-    try:
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(code)
-            temp_path = f.name
-        result = subprocess.run(
-            [sys.executable, temp_path],
-            capture_output=True, text=True, timeout=10
-        )
-        os.remove(temp_path)
-        return result.stdout.strip() if result.returncode == 0 else f"Error: {result.stderr.strip()}"
-    except subprocess.TimeoutExpired:
-        return "Error: Execution timed out after 10 seconds."
-    except Exception as e:
-        return f"Error executing code: {e}"
+    res = execute_code_sandboxed(code, timeout=10)
+    if res["success"]:
+        return res["stdout"].strip()
+    return f"Error: {res['stderr'].strip()}"
 
 # ─────────────────────────────────────────────
 # 4.  Document synthesizer (Two-Stage)
@@ -534,9 +527,16 @@ def execute_agentic_workflow(prompt: str, context: str = "", output_dir: str = "
     # ── E. Image analysis ────────────────────────────────────────────────
     elif task_type == "image_analysis":
         import glob
-        img_files = (glob.glob(os.path.join(output_dir, "*.jpg")) +
-                     glob.glob(os.path.join(output_dir, "*.jpeg")) +
-                     glob.glob(os.path.join(output_dir, "*.png")))
+        images_dir = os.path.join(os.path.dirname(output_dir), "images")
+        search_dirs = [output_dir]
+        if os.path.exists(images_dir):
+            search_dirs.append(images_dir)
+
+        img_files = []
+        for d in search_dirs:
+            img_files.extend(glob.glob(os.path.join(d, "*.jpg")))
+            img_files.extend(glob.glob(os.path.join(d, "*.jpeg")))
+            img_files.extend(glob.glob(os.path.join(d, "*.png")))
         
         if not img_files:
             response_text = "No images found in the workspace. Please upload an image first."

@@ -10,8 +10,9 @@ class QueryRequest(BaseModel):
     query: str
 
 class ImageAnalysisRequest(BaseModel):
-    image_path: str
-    prompt: str
+    image_path: Optional[str] = None
+    image_name: Optional[str] = None
+    prompt: Optional[str] = "Describe the visible condition of this equipment in detail."
 
 class ReportRequest(BaseModel):
     title: str
